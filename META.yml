@@ -1,0 +1,17 @@
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         Persistence-Entity
+version:      0.01
+license: perl
+version_from: lib/Persistence/Entity.pm
+installdirs:  site
+requires:
+    Abstract::Meta::Class:                    0
+    SQL::Entity:                              0.03
+    DBIx::Connection:                         0
+    Simple::SAX::Serializer:                  0.04
+    Test::DBUnit:                             0
+
+distribution_type: module
+tests: t/*.t t/*/*.t
+generated_by: ExtUtils::MakeMaker version 6.30
