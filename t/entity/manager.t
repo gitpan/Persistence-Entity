@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 17;
+use Test::More tests => 18;
 use Test::DBUnit connection_name => 'test';
 
 my $class;
@@ -65,7 +65,7 @@ isa_ok($entity_manager->entity('emp'), 'SQL::Entity');
 
 SKIP: {
     
-    skip('missing env varaibles DB_TEST_CONNECTION, DB_TEST_USERNAME DB_TEST_PASSWORD', 13)
+    skip('missing env varaibles DB_TEST_CONNECTION, DB_TEST_USERNAME DB_TEST_PASSWORD', 14)
       unless $ENV{DB_TEST_CONNECTION};
 
     my $connection = DBIx::Connection->new(
@@ -79,7 +79,7 @@ SKIP: {
     SKIP: {
 
         my $dbms_name  = $connection->dbms_name;
-            skip('Tests are not prepared for ' . $dbms_name , 3)
+            skip('Tests are not prepared for ' . $dbms_name , 14)
                 unless -d "t/sql/". $connection->dbms_name;
    
         # preparing tests
@@ -87,6 +87,13 @@ SKIP: {
         populate_schema_ok("t/sql/". $connection->dbms_name . "/populate_schema.sql");
         
         $entity_manager->begin_work;
+        
+        eval {
+                $entity_manager->begin_work;
+        };
+        
+        like($@, qr{active transaction}, 'catch active transaction error');
+        
         {
             package Employee;
     

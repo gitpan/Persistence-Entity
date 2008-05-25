@@ -1,17 +1,61 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Persistence-Entity
-version:      0.01
+version:      0.02
+author:
+  - 'Adrian Witas <adrian@webapp.strefa.pl>'
+abstract: Persistence API for perl classes.
 license: perl
-version_from: lib/Persistence/Entity.pm
-installdirs:  site
+resources:
+  license: http://dev.perl.org/licenses/
 requires:
-    Abstract::Meta::Class:                    0
+    Carp:                                     0
+    Abstract::Meta::Class:                    0.06
     SQL::Entity:                              0.03
     DBIx::Connection:                         0
     Simple::SAX::Serializer:                  0.04
     Test::DBUnit:                             0
-
+build_requires:
+    Test::Pod:               0
+    Test::Pod::Coverage:     0
+provides:
+Persistence::Entity:
+    file: lib/Persistence/Entity.pm
+Persistence::Entity::Manager :
+    file: lib/Persistence/Entity/Manager.pm
+Persistence::Entity::Query:
+    file: lib/Persistence/Entity/Query.pm
+Persistence::Manual:
+    file: lib/Persistence/Manual.pm
+Persistence::Manual::EntityManager:
+    file: lib/Persistence/Manual/EntityManager.pm
+Persistence::Manual::Introduction:
+    file: lib/Persistence/Manual/Introduction.pm
+Persistence::Manual::Relationship:
+    file: lib/Persistence/Manual/Relationship.pm
+Persistence::Meta::XML:
+    file: lib/Persistence/Meta/XML.pm
+Persistence::ORM:
+    file: lib/Persistence/ORM.pm
+Persistence::Relationship:
+    file: lib/Persistence/Relationship.pm
+Persistence::Relationship::ManyToMany:
+    file: lib/Persistence/Relationship/ManyToMany.pm
+Persistence::Relationship::OneToMany:
+    file: lib/Persistence/Relationship/OneToMany.pm
+Persistence::Relationship::ToOne:
+    file: lib/Persistence/Relationship/ToOne.pm
+Persistence::ValueGenerator:
+    file: lib/Persistence/ValueGenerator.pm
+Persistence::ValueGenerator::SequenceGenerator:
+    file: lib/Persistence/ValueGenerator/SequenceGenerator.pm
+Persistence::ValueGenerator::TableGenerator:
+    file: lib/Persistence/ValueGenerator/TableGenerator.pm
+    
+installdirs:  site
 distribution_type: module
 tests: t/*.t t/*/*.t
 generated_by: ExtUtils::MakeMaker version 6.30
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.2.html
+  version: 1.2

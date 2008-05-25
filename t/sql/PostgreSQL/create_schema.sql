@@ -1,10 +1,21 @@
 CREATE SEQUENCE emp_seq;
+CREATE SEQUENCE address_seq;
 
 CREATE TABLE dept (
- deptno NUMERIC(2) CONSTRAINT dept_pk PRIMARY KEY,
- dname  VARCHAR(20),
- loc    VARCHAR(20)
+ deptno   NUMERIC(2) CONSTRAINT dept_pk PRIMARY KEY,
+ dname    VARCHAR(20),
+ loc      VARCHAR(20),
+ addr_id  INT4
+; 
+
+
+CREATE TABLE address (
+ id        INT4 DEFAULT nextval('address_seq') NOT NULL,
+ loc       VARCHAR(20),
+ town      VARCHAR(20),
+ postcode  VARCHAR(20)
 ); 
+
 
 CREATE TABLE emp(
  empno      INT4 DEFAULT nextval('emp_seq') NOT NULL,

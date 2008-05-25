@@ -104,7 +104,6 @@ Loads xml files that containt meta persistence definition.
     </orm>
 
 
-
     package Employee;
     use Abstract::Meta::Class ':all';
 
@@ -198,7 +197,15 @@ Contains directory of xml files that contain persistence object definition.
 
 =over
 
-=item initialise
+=item inject
+
+Injects persistence xml definition.
+Takes xml file definition
+
+
+    my $meta = Persistence::Meta::XML->new(persistence_dir => $dir);
+    my $entity_manager = $meta->inject('persistence.xml');
+
 
 =cut
 
@@ -218,25 +225,25 @@ sub inject {
 Retunds xml handlers that will transform the persistence xml into objects.
 Persistence node is mapped to the Persistence::Entity::Manager;
 
-<!ELEMENT persistence (entities+,mapping_rules*)>
-<!ATTLIST persistence name #REQUIRED>
-<!ATTLIST persistence connection_name #REQUIRED>
-<!ELEMENT entities (entity_file+)>
-<!ELEMENT entity_file (filter_condition_value+ .dml_filter_value) >
-<!ATTLIST entity_file file id order_index>
-<!ELEMENT mapping_rules (orm_file+)>
-<!ATTLIST mapping_rules file>
-
-<?xml version='1.0' encoding='UTF-8'?>
-<persistence name="test"  connection_name="test" >
-    <entities>
-        <entity_file file="emp.xml"  />
-        <entity_file file="dept.xml"  />
-    </entities>
-    <mapping_rules>
-        <orm_file file="Employee" />
-    </mapping_rules>
-</persistence>
+    <!ELEMENT persistence (entities+,mapping_rules*)>
+    <!ATTLIST persistence name #REQUIRED>
+    <!ATTLIST persistence connection_name #REQUIRED>
+    <!ELEMENT entities (entity_file+)>
+    <!ELEMENT entity_file (filter_condition_value+ .dml_filter_value) >
+    <!ATTLIST entity_file file id order_index>
+    <!ELEMENT mapping_rules (orm_file+)>
+    <!ATTLIST mapping_rules file>
+    
+    <?xml version='1.0' encoding='UTF-8'?>
+    <persistence name="test"  connection_name="test" >
+        <entities>
+            <entity_file file="emp.xml"  />
+            <entity_file file="dept.xml"  />
+        </entities>
+        <mapping_rules>
+            <orm_file file="Employee" />
+        </mapping_rules>
+    </persistence>
 
 =cut
 
@@ -467,63 +474,60 @@ sub _add_relationship_parameters {
 
 Retunds xml handlers that will transform the enity xml into Persistence::Entity
 
-<!ELEMENT entity (primary_key*, indexes?, columns?, subquery_columns?,
-filter_condition_value+ .dml_filter_value+, to_one_relationships? to_many_relationships?, value_generators*)>
-<!ATTLIST entity id name alias unique_expression query_from schema order_index>
-<!ELEMENT primary_key (#PCDATA)>
-<!ELEMENT indexes (index+)>
-<!ELEMENT index (index_columns+)>
-<!ATTLIST index name hint>
-<!ELEMENT index_columns (#PCDATA)>
-<!ELEMENT columns (column+) >
-<!ELEMENT subquery_columns (subquery_column+)>
-<!ELEMENT subquery_column>
-<!ATTLIST subquery_column entity name>
-<!ELEMENT column>
-<!ATTLIST column id name unique expression case_sensitive queryable insertable updatable>
-<!ELEMENT filter_condition_values (#PCDATA)>
-<!ATTLIST filter_condition_values name #REQUIRED>
-<!ELEMENT dml_filter_values (#PCDATA)>
-<!ATTLIST dml_filter_values name #REQUIRED>
-<!ELEMENT to_one_relationships (relationship+)>
-<!ELEMENT to_many_relationships (relationship+)>
-<!ELEMENT relationship (join_columns*, condition?)>
-<!ATTLIST relationship  name target_entity order_by>
-<!ELEMENT join_columns (#PCDATA)>
-<!ELEMENT condition (condition+) >
-<!ATTLIST condition operand1  operator operand2 relation>
-<!ELEMENT value_generators (#PCDATA)>
-
-For instnace.
-<?xml version="1.0" encoding="UTF-8"?>
-<entity name="emp" alias="e">
-    <primary_key>empno</primary_key>
-    <indexes>
-        <index name="emp_idx_empno" hint="INDEX_ASC(e emp_idx_empno)">
-            <index_column>ename</index_column>
-        </index>
-        <index name="emp_idx_ename">
-            <index_column>empno</index_column>
-        </index>
-    </indexes>
-    <columns>
-        <column name="empno" />
-        <column name="ename" />
-    </columns>
-    <subquery_columns>
-        <subquery_column name="dname" entity_id="dept" />
-    </subquery_columns>
-    <to_one_relationships>
-        <relationship target_entity="dept">
-            <join_column>deptno</join_column>
-        </relationship>
-    </to_one_relationships>
-</entity>
+    <!ELEMENT entity (primary_key*, indexes?, columns?, subquery_columns?,
+    filter_condition_value+ .dml_filter_value+, to_one_relationships? to_many_relationships?, value_generators*)>
+    <!ATTLIST entity id name alias unique_expression query_from schema order_index>
+    <!ELEMENT primary_key (#PCDATA)>
+    <!ELEMENT indexes (index+)>
+    <!ELEMENT index (index_columns+)>
+    <!ATTLIST index name hint>
+    <!ELEMENT index_columns (#PCDATA)>
+    <!ELEMENT columns (column+) >
+    <!ELEMENT subquery_columns (subquery_column+)>
+    <!ELEMENT subquery_column>
+    <!ATTLIST subquery_column entity name>
+    <!ELEMENT column>
+    <!ATTLIST column id name unique expression case_sensitive queryable insertable updatable>
+    <!ELEMENT filter_condition_values (#PCDATA)>
+    <!ATTLIST filter_condition_values name #REQUIRED>
+    <!ELEMENT dml_filter_values (#PCDATA)>
+    <!ATTLIST dml_filter_values name #REQUIRED>
+    <!ELEMENT to_one_relationships (relationship+)>
+    <!ELEMENT to_many_relationships (relationship+)>
+    <!ELEMENT relationship (join_columns*, condition?)>
+    <!ATTLIST relationship  name target_entity order_by>
+    <!ELEMENT join_columns (#PCDATA)>
+    <!ELEMENT condition (condition+) >
+    <!ATTLIST condition operand1  operator operand2 relation>
+    <!ELEMENT value_generators (#PCDATA)>
+    
+    For instnace.
+    <?xml version="1.0" encoding="UTF-8"?>
+    <entity name="emp" alias="e">
+        <primary_key>empno</primary_key>
+        <indexes>
+            <index name="emp_idx_empno" hint="INDEX_ASC(e emp_idx_empno)">
+                <index_column>ename</index_column>
+            </index>
+            <index name="emp_idx_ename">
+                <index_column>empno</index_column>
+            </index>
+        </indexes>
+        <columns>
+            <column name="empno" />
+            <column name="ename" />
+        </columns>
+        <subquery_columns>
+            <subquery_column name="dname" entity_id="dept" />
+        </subquery_columns>
+        <to_one_relationships>
+            <relationship target_entity="dept">
+                <join_column>deptno</join_column>
+            </relationship>
+        </to_one_relationships>
+    </entity>
 
 =cut
-
-#TODO add xml schema with namespace
-
 
 sub entity_xml_handler {
     my ($self) = @_;
@@ -687,18 +691,16 @@ sub _parse_condition {
         my ($entity, $column) = $self->has_column($operand1);
         $condition->set_operand1($self->entity_column($entity, $column)) if($column)
     }
-    
     {
         my $operand2 = $condition->operand2;
         my ($entity, $column) = $self->has_column($operand2);
         $condition->set_operand2($self->entity_column($entity, $column)) if($column)
     }
-    
     my $conditions = $condition->conditions;
     for my $k (@$conditions) {
         $self->_parse_condition($k);
     }
-    
+
 }
 
 
@@ -732,6 +734,10 @@ sub entity_column {
 __END__
 
 =back
+
+=head1 TOO DO
+
+Add caching of xml.
 
 =head1 SEE ALSO
 

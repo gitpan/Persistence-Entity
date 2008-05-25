@@ -20,7 +20,7 @@ use constant ON_UPDATE => 3;
 use constant ON_DELETE => 4;
 
 
-$VERSION = 0.01;
+$VERSION = 0.03;
 
 @EXPORT_OK = qw(LAZY EAGER NONE ALL ON_INSERT ON_UPDATE ON_DELETE);
 %EXPORT_TAGS = (all => \@EXPORT_OK);
@@ -92,7 +92,10 @@ has '$.cascade' => (default => NONE);
 {
     my %meta;
 
-=item one_to_many
+=item add_relationship
+
+Adds relationship to meta data cache,
+Takes package name of persisitence mapping, name of relationsship, reelationship constructor parameters.
 
 =cut
 
@@ -265,6 +268,24 @@ Returns all to one relation where insert applies.
         @result;
     }
 
+
+=item lazy_fetch_relations
+
+=cut
+
+    sub lazy_fetch_relations {
+        my ($class, $obj_class) = @_;
+        my $relations = $meta{$obj_class} or return;
+        my @result;
+        foreach my $attribute_name (keys %$relations) {
+            my $relation = $relations->{$attribute_name};
+            next if $relation->fetch_method ne LAZY;
+            push @result, $relation;
+        }
+        @result;
+    }
+
+
 }
 
 
@@ -276,28 +297,37 @@ sub install_fetch_interceptor {
     my ($self, $attribute) = @_;
     my $type = $attribute->perl_type;
     my $attr_name = $attribute->name;
+    my $has_value = "has_" . $attr_name;
     my %pending_fetch;
     my $class_name = $attribute->class;
     $attribute->set_on_read(
         sub {
            my ($this, $attribute, $scope, $index) = @_;
            my $values = $attribute->get_value($this);
-           my $entity_manager = Persistence::Entity::Manager->manager($self->persistence_conext($class_name));
-           unless ($entity_manager->has_lazy_fetch_flag($this, $attr_name)) {
-                unless ($pending_fetch{$this}) {
-                     $pending_fetch{$self} = 1;
-                     my $orm = $entity_manager->find_entity_mappings($class_name);
-                     $self->deserialise_attribute($this, $entity_manager, $orm);
-                     delete $pending_fetch{$self};
-                     $values = $attribute->get_value($this);
-                }
-                $entity_manager->add_lazy_fetch_flag($this, $attr_name);
-           }
+           my $persistence_context = $self->persistence_conext($class_name);
+           if($persistence_context && ! $this->$has_value) {
+                my $entity_manager = Persistence::Entity::Manager->manager($persistence_context);
+                unless ($entity_manager->has_lazy_fetch_flag($this, $attr_name)) {
+                     unless ($pending_fetch{$this}) {
+                          $pending_fetch{$self} = 1;
+                          my $orm = $entity_manager->find_entity_mappings($class_name);
+                          $self->deserialise_attribute($this, $entity_manager, $orm);
+                          delete $pending_fetch{$self};
+                          $values = $attribute->get_value($this);
 
+                     }
+                     $entity_manager->add_lazy_fetch_flag($this, $attr_name);
+                }
+           }
+           
            if ($scope eq 'accessor') {
                 return $values;
            } else {
-                return $type eq 'Hash' ? $values->{$index} : $values->[$index]
+                return $type eq 'Hash'
+                ? $values->{$index}
+                : ($type eq  'Array'
+                    ? $values->[$index]
+                    : $values);
            }
         }
     )
@@ -306,13 +336,14 @@ sub install_fetch_interceptor {
 
 
 {
+
 =item set_persistence_conext
 
 Sets persistence context
 
 =cut
 
-    my %persistence_context;    
+    my %persistence_context;
     sub set_persistence_conext {
         my ($class, $obj_class, $context_name) = @_;
         return if exists $persistence_context{$obj_class};
@@ -342,11 +373,24 @@ Returns relations values as array ref, takes object as parameter
 
 sub values {
     my ($self, $object) = @_;
-    my $attribute = $self->attribute;
-    my $accessor = $attribute->accessor;
-    my $values = $object->$accessor;
+    my $values = $self->value($object);
     ref($values) eq 'HASH' ? [values %$values] : $values;
 }
+
+
+=item value
+
+Returns relations value
+
+=cut
+
+sub value {
+    my ($self, $object) = @_;
+    my $attribute = $self->attribute;
+    my $accessor = $attribute->accessor;
+    $object->$accessor;
+}
+
 
 
 1;

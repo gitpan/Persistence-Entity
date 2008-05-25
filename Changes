@@ -1,4 +1,9 @@
 Revision history for Perl extension Persistence::Entity.
 
+0.02  Sun May 24 2008
+    - Plain classes ORM support
+    - Improved pod documentation
+    - Introduce mandual
+    
 0.01  Sun May 18 2008
     -  Initial import to CPAN.

@@ -14,7 +14,7 @@ use vars qw(@EXPORT_OK %EXPORT_TAGS $VERSION);
 use Carp 'confess';
 use base 'Exporter';
 
-$VERSION = 0.01;
+$VERSION = 0.03;
 
 @EXPORT_OK = qw(entity column trigger to_one one_to_many many_to_many LAZY EAGER NONE ALL ON_INSERT ON_UPDATE ON_DELETE);
 %EXPORT_TAGS = (all => \@EXPORT_OK);
@@ -140,7 +140,7 @@ column (column => has '$.attr1');
 
     sub column {
         my ($name, $attribute) = @_;
-        my $attr_class = 'Abstract::Meta::Attribute';        
+        my $attr_class = 'Abstract::Meta::Attribute';
         confess "secound parameter must be a ${attr_class}"
             unless ref($attribute) eq $attr_class;
         my $package = caller();
@@ -157,6 +157,7 @@ column (column => has '$.attr1');
 
     sub initialise {
         my ($self) = @_;
+        $self->_check_attribute;
         $meta{$self->class} = $self;
     }
 
@@ -172,6 +173,33 @@ Takes optionally package name as parameter.
         my ($package) = @_;
         $package ||= caller();
         $meta{$package};
+    }
+}
+
+
+=item _check_attribute
+
+Checks if attributes mapped from column are unlbessed hash structure,
+if they are then dynamicly adds them Abstract::Meta::Attribute to Abstract::Meta::Class
+
+=cut
+
+sub _check_attribute {
+    my ($self) = @_;
+    my $class = $self->class;
+    my $columns = $self->columns;
+    my $meta_class = Abstract::Meta::Class::meta_class($class);
+    for my $column(keys %$columns) {
+        my $meta_attribute = $columns->{$column};
+        my $type = ref($meta_attribute);
+        if($type eq 'HASH') {
+            my $name = $meta_attribute->{name};
+            $name = '$.' . $name unless ($name =~ m/[\$\@\%]\./);
+            my %args = (storage_key => $meta_attribute->{name}, %$meta_attribute, name => $name, class => $class);
+            my $attribute = $meta_class->attribute_class->new(%args);
+            push @{$meta_class->attributes}, $attribute;
+            $columns->{$column} = $attribute;
+        }
     }
 }
 
@@ -236,7 +264,26 @@ sub deserialise_eager_relation_attributes {
 }
 
 
-=item hash_to_attributes_values
+
+=item deserialise_lazy_relation_attributes
+
+=cut
+
+sub deserialise_lazy_relation_attributes {
+    my ($self, $object, $entity_manager) = @_;
+    Persistence::Relationship->set_persistence_conext(ref($object), $entity_manager->name);
+    my @relations = Persistence::Relationship->lazy_fetch_relations(ref($object));
+    foreach my $relation (@relations) {
+        my $accessor = $relation->attribute->accessor;
+        $object->$accessor;
+    }
+}
+
+=item map_hash_to_attributes_storage
+
+Transform source hash to the object hash.
+Return hash where source key is mapped attribute storage key.
+Takes hash ref of field values.
 
 =cut
 
@@ -250,9 +297,10 @@ sub map_hash_to_attributes_storage {
 }
 
 
-=item map_attributes_storage_to_column_values
+=item map_object_attributes_to_column_values
 
 Maps keys on passed in hash to coresponding columns.
+Takes object as parameter.
 
 =cut
 
@@ -268,7 +316,7 @@ sub map_object_attributes_to_column_values {
 
 =item column_values
 
-Returns map of passed in columns
+Transform objects attirubtes to column values
 
 =cut
 

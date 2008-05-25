@@ -1,11 +1,27 @@
 CREATE SEQUENCE emp_seq;
-
+CREATE SEQUENCE address_seq;
 
 CREATE TABLE dept (
- deptno NUMBER(2) CONSTRAINT dept_pk PRIMARY KEY,
- dname  VARCHAR2(20),
- loc    VARCHAR2(20)
+ deptno  NUMBER(2) CONSTRAINT dept_pk PRIMARY KEY,
+ dname   VARCHAR2(20),
+ loc     VARCHAR2(20),
+ addr_id NUMBER(2)
 ); 
+
+CREATE TABLE address (
+ id	  NUMBER,
+ loc      VARCHAR2(20),
+ town     VARCHAR2(20),
+ postcode VARCHAR2(20)
+);
+
+CREATE OR REPLACE TRIGGER address_autogen
+BEFORE INSERT ON address FOR EACH ROW
+BEGIN
+    IF :new.id is null then
+        SELECT address_seq.nextval INTO :new.id FROM dual;
+    END IF;
+END;
 
 CREATE TABLE emp(
  empno      NUMBER NOT NULL,

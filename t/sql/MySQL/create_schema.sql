@@ -2,8 +2,18 @@ CREATE TABLE dept (
  deptno MEDIUMINT AUTO_INCREMENT, 
  dname  VARCHAR(20),
  loc    VARCHAR(20),
+ addr_id  MEDIUMINT,
  CONSTRAINT dept_pk PRIMARY KEY (deptno)
 ); 
+
+
+CREATE TABLE address (
+ id MEDIUMINT AUTO_INCREMENT, 
+ locaction  VARCHAR(20),
+ town       VARCHAR(20),
+ postcod    VARCHAR(20),
+ CONSTRAINT address_pk PRIMARY KEY (id)
+);
 
 CREATE TABLE emp(
  empno     MEDIUMINT AUTO_INCREMENT, 

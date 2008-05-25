@@ -160,14 +160,13 @@ sub insert {
 
 =item merge
 
-Merges relationship data.
+Merges relationship data. #what if lazy
 
 =cut
 
 sub merge {
     my ($self, $orm, $entity, $dataset, $object) = @_;
-    my $attribute = $self->attribute;
-    my $value = $attribute->get_value($object);
+    my $value = $self->value($object);
     $entity->relationship_merge($self->name, $dataset, $value);
 }
 
@@ -181,8 +180,7 @@ Merges relationship data.
 
 sub delete {
     my ($self, $orm, $entity, $dataset, $object) = @_;
-    my $attribute = $self->attribute;
-    my $value = $attribute->get_value($object) or return;
+    my $value = $self->value($object);
     $entity->relationship_delete($self->name, $dataset, $value);
 }
 
