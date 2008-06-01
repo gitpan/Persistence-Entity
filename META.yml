@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Persistence-Entity
-version:             0.03
+version:             0.04
 author:
   - 'Adrian Witas <adrian@webapp.strefa.pl>'
 abstract: Persistence API for perl classes.

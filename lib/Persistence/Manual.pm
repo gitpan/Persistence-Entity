@@ -21,7 +21,7 @@ Persistence actions.
 
 Object relationships
 
-=head2 L<Persistence::Manual::LOBs>
+=head2 L<Persistence::Manual::LOB>
 
 Large objects attributes persisitence.
 

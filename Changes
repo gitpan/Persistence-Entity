@@ -1,6 +1,9 @@
 Revision history for Perl extension Persistence::Entity.
 
-0.03  Sun Jun 01 2008
+0.04  Mon Jun 02 2008
+    - Fix pod
+
+0.03 Sun Jun 01 2008
     - Added adapters foe MOP classes
     - Added LOBs support
     - Improved pod documentation

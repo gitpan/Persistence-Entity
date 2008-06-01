@@ -39,7 +39,7 @@ Let's consider the following database entities relationships
 
 
 
-The following code defins our relationship examples.
+The following code defines our relationship examples.
 
     use Persistence::Entity::Manager;
     use Persistence::ValueGenerator::TableGenerator;

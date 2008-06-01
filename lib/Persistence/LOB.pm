@@ -11,14 +11,14 @@ use Persistence::Fetchable ':all';
 use base qw(Exporter Persistence::Fetchable);
 use Carp 'confess';
 
-$VERSION = 0.01;
+$VERSION = 0.02;
 
 @EXPORT_OK = qw(LAZY EAGER);
 %EXPORT_TAGS = (all => \@EXPORT_OK);
 
 =head1 NAME
 
-Persistence::Relationship - LOBs mapping object.
+Persistence::LOB - LOBs mapping object.
 
 =head1 CLASS HIERARCHY
 

@@ -13,7 +13,7 @@ use Carp 'confess';
 use constant LAZY   => 0;
 use constant EAGER  => 1;
 
-$VERSION = 0.01;
+$VERSION = 0.02;
 
 @EXPORT_OK = qw(LAZY EAGER);
 %EXPORT_TAGS = (all => \@EXPORT_OK);
@@ -65,7 +65,7 @@ Takes hash ref of objects.
 
 sub eager_fetch_filter {
     my ($class, $hash_of_objects) = @_;
-    $class->fetch_objects_filtr($hash_of_objects, EAGER);
+    $class->fetch_objects_filter($hash_of_objects, EAGER);
 }
 
 
@@ -78,18 +78,18 @@ Takes hash ref of objects.
 
 sub lazy_fetch_filter {
     my ($class, $hash_of_objects) = @_;
-    $class->fetch_objects_filtr($hash_of_objects, LAZY);
+    $class->fetch_objects_filter($hash_of_objects, LAZY);
 }
 
 
-=item fetch_objects_filtr
+=item fetch_objects_filter
 
 Returns list of objects that have specyfied fetch method.
 Takes hash ref of objects, fetch method.
 
 =cut
 
-sub fetch_objects_filtr {
+sub fetch_objects_filter {
     my ($class, $hash_of_objects, $fetch_method) = @_;
     my @result;
     foreach my $k (keys %$hash_of_objects) {
