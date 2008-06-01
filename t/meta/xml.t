@@ -189,9 +189,9 @@ BEGIN {
     
     my $orm = $xml->parse_string($xml_content);
     ::isa_ok($orm, 'Persistence::ORM');
-    ::isa_ok($orm->_column('ename') ,'Abstract::Meta::Attribute', 'should have ename column mapping');
-    ::isa_ok($orm->_column('empno') ,'Abstract::Meta::Attribute', 'should have empno column mapping');
-    ::isa_ok($orm->_column('job') ,'Abstract::Meta::Attribute', 'should have job column mapping');
+    ::isa_ok($orm->_column('ename'), 'Persistence::Attribute', 'should have ename column mapping');
+    ::isa_ok($orm->_column('empno'), 'Persistence::Attribute', 'should have empno column mapping');
+    ::isa_ok($orm->_column('job'), 'Persistence::Attribute', 'should have job column mapping');
 
 }
 

@@ -172,13 +172,10 @@ SKIP: {
         );
         $entity_manager->update($dept);
         expected_xml_dataset_ok('update_1');
-        
     }
 
     {
         my ($dept) = $entity_manager->find(dept => 'Department', name => 'HO - 1');
-        
-        
         $entity_manager->delete($dept);
         expected_xml_dataset_ok('delete_1');
         
@@ -238,7 +235,5 @@ SKIP: {
         $entity_manager->delete($emp);
     }
     expected_xml_dataset_ok('delete');
-    
-    
     
 }

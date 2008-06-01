@@ -13,9 +13,16 @@ $VERSION = 0.01;
 @EXPORT_OK = qw(to_one);
 %EXPORT_TAGS = (all => \@EXPORT_OK);
 
+
 =head1 NAME
 
 Persistence::Relationship::ToOne - To one relationship
+
+=head1 CLASS HIERARCHY
+
+ Persistence::Relationship
+    |
+    +----Persistence::Relationship::ToOne
 
 =head1 SYNOPSIS
 
@@ -130,6 +137,7 @@ sub deserialise_attribute {
         $attribute->set_value($object, $pending_value);
         return ;
     }
+
     my @rows = $entity->relationship_query(
         $self->name,
         ref($object) => $attribute->associated_class,

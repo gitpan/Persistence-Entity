@@ -57,5 +57,6 @@ CREATE TABLE seq_generator
   value_column MEDIUMINT
 );
 
+CREATE TABLE photo(id NUMERIC, name VARCHAR(100), doc_size NUMERIC, blob_content LONGBLOB, empno MEDIUMINT);
 
 

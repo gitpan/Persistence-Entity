@@ -1,6 +1,6 @@
 =head1 NAME
 
-Persisistence::Entity::Introduction - Introduction to Persistence::Entity. 
+Persistence::Manual::Introduction - Introduction to Persistence::Entity. 
 
 =head1 INTRODUCTION
 
@@ -66,7 +66,7 @@ It takes care of managing the object in transactions and persisting its state to
         $entity_manager->insert($emp);
 
         #you can delcare mapping between many object to the same entity (for different inheritance strategy)
-        #so this is find take entity_name, class_name as two first parameters.
+        #so that find takes entity_name, class_name as two first parameters.
 
         my @emp = $entity_manager->find(emp => 'Employee', deptnp => 10);
         for my $emp (@emp) {
@@ -84,7 +84,10 @@ It takes care of managing the object in transactions and persisting its state to
 
 =item Classes defined with Meta Object Protocol
 
-This module currenly suppport Abstract::Meta::Class class generator, but it may be extended if needed.
+This module suppports adapters to different MOP classes so that
+it may be easily extended by adding adapter class that implements/extends Persistence::Attribute interface.
+
+Persistence::Attribute::AMCAdapter is default adapter class that supports Abstract::Meta::Class.
 
     package Employee;
     use Abstract::Meta::Class ':all';
@@ -97,19 +100,18 @@ This module currenly suppport Abstract::Meta::Class class generator, but it may 
 
 =item Plain perl classes
 
-
     use Persistence::ORM;
 
     Persistence::ORM->new(
-        entity_name => 'emp',
-        class       => 'Employee',
-        columns     => {
+        mop_attribute_adapter => 'Persistence::Attribute::AMCAdapter',
+        entity_name           => 'emp',
+        class                 => 'Employee',
+        columns               => {
             empno => {name => 'id'},
             ename => {name => 'name'},
             job   => {name => 'job'},
         }
     );
-
 
     package Employee;
 

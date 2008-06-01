@@ -65,7 +65,6 @@ use SQL::Entity::Condition ':all';
             my $emp = Employee->new(name => 'foo');
             $entity_manager->insert($user);
 
-
             $emp->set_deptno(10);
             $entity_manager->update($emp);
 
@@ -99,17 +98,6 @@ None.
 =cut
 
 has '$.name' => (required => 1);
-
-
-
-=item active_transaction
-
-Flag that stores information if manager is in active transaction.
-
-=cut
-
-has '$.active_transaction';
-
 
 
 =item entities
@@ -320,7 +308,7 @@ sub condition_converter {
     my $orm = $self->find_entity_mappings($class_name);
     (@args > 1)
         ? SQL::Entity::Condition->struct_to_condition(
-            ($orm ? $orm->map_attributes_to_column_values(@args) : @args))
+            ($orm ? $orm->attribute_values_to_column_values(@args) : @args))
         : $args[0];
 }
 
@@ -394,7 +382,7 @@ sub refersh {
     $self->_reset_lazy_relation_attributes($object);
     $self->detach($object);
     my $entity = $self->entity($orm->entity_name);
-    my %fields_values = $orm->map_object_attributes_to_column_values($object);
+    my %fields_values = $orm->column_values($object);
     my %condition_values = $entity->unique_condition_values(\%fields_values, 1);
     my ($resultset) = $entity->find(undef, %condition_values);
     $orm->update_object($object, $resultset);
@@ -419,7 +407,7 @@ sub insert {
     my ($self, $object, $values) = @_;
     $values ||= {};
     my $orm = $self->find_entity_mappings($object, 1);
-    my %fields_values = ($orm->map_object_attributes_to_column_values($object), %$values);
+    my %fields_values = ($orm->column_values($object), %$values);
     my $entity = $self->entity($orm->entity_name);
     $self->_insert_to_one_relationship($entity, $object, \%fields_values, $orm);
     $orm->run_event('before_insert', \%fields_values);
@@ -451,10 +439,11 @@ sub update {
     my $entity = $self->entity($orm->entity_name);
     $orm->deserialise_lazy_relation_attributes($object, $self);
     $self->initialise_operation($orm->entity_name, $object);
-    my %fields_values = ($orm->map_object_attributes_to_column_values($object), %$values);
+    my %fields_values = ($orm->column_values($object), %$values);
     $self->_update_to_one_relationship($entity, $object, \%fields_values, $orm);
     my $changed_column_values = $self->changed_column_values($entity, $object, \%fields_values);
     my %unique_values = $entity->unique_condition_values(\%fields_values);
+
     if ($changed_column_values) {
         $orm->run_event('before_update', \%fields_values);
         $entity->update($changed_column_values, \%unique_values);
@@ -518,7 +507,7 @@ sub delete {
     $orm->deserialise_lazy_relation_attributes($object, $self);
     $self->initialise_operation($orm->entity_name, $object);
     my $entity = $self->entity($orm->entity_name);
-    my %fields_values = ($orm->map_object_attributes_to_column_values($object));
+    my %fields_values = ($orm->column_values($object));
     my %condition_values = $entity->unique_condition_values(\%fields_values);
     $orm->run_event('before_delete', \%condition_values);
     $self->_delete_to_many_relationship($entity, $object, \%condition_values, $orm);
@@ -546,10 +535,7 @@ Begins a new transaction.
 
 sub begin_work {
     my ($self) = @_;
-    confess "has already active transaction"
-        if $self->active_transaction;
     $self->connection->begin_work;
-    $self->set_active_transaction(1);
 }
 
 
@@ -563,7 +549,6 @@ Commits current transaction.
 
 sub commit {
     my ($self) = @_;
-    $self->set_active_transaction(0);
     $self->connection->commit;
     my $persitence_mangement = $self->persitence_mangement;
     $self->detach_all
@@ -581,7 +566,6 @@ Rollbacks current transaction.
 
 sub rollback {
     my ($self) = @_;
-    $self->set_active_transaction(0);
     $self->connection->rollback;
     my $persitence_mangement = $self->persitence_mangement;
     $self->detach_all
@@ -691,6 +675,7 @@ sub find_entity_mappings {
     my $result = Persistence::ORM::mapping_meta($class_name);
     confess "cant find entity mapping for ${class_name}"
         if ($must_exists_validation && ! $result);
+    $result->entity_manager($self) if $result;
     $result;
 }
 
@@ -819,7 +804,10 @@ sub _deseralize_object {
             $result = {%$resultset};
         }
     }
-    $self->_manage_object($result, $resultset) if $class_name;
+    if ($class_name) {
+        $self->_manage_object($result, $resultset) ;
+        $self->_reset_lazy_relation_attributes($result);
+    }
     $result;
 }
 
@@ -837,7 +825,8 @@ sub changed_column_values {
         my $persistence_cache = $self->_persistence_cache;
         my $record = $persistence_cache->{$object};
         if ($record) {
-            my @columns = $entity->updatable_columns;
+            my $lobs  = $entity->lobs;
+            my @columns = ($entity->updatable_columns,($lobs  ? values %$lobs : ()));
             for my $column (@columns) {
                 my $column_name = $column->name;
                 next unless exists $fields->{$column_name};
@@ -863,8 +852,9 @@ Takes object, resultset as parameters.
 sub _manage_object {
     my ($self, $object, $resultset) = @_;
     my $persistence_cache = $self->_persistence_cache;
-    $persistence_cache->{$object} = {%$resultset}
-        if $self->persitence_mangement;
+    if ($self->persitence_mangement) {
+        $persistence_cache->{$object} = {%$resultset};
+    }
 }
 
 
@@ -910,6 +900,7 @@ sub _reset_lazy_relation_attributes {
         my $call = "reset_$attribute";
         $object->$call;
     }
+    $fetch_flags->{$object} = {};
 }
 
 

@@ -72,3 +72,6 @@ CREATE TABLE seq_generator
   pk_column VARCHAR2(30),
   value_column NUMBER
 );
+
+
+CREATE TABLE photo(id NUMBER, name VARCHAR2(100), doc_size NUMBER, blob_content BLOB, empno NUMBER);

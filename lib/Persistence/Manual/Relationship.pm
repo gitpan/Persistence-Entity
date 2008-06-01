@@ -1,6 +1,6 @@
 =head1 NAME 
 
-Persisistence::Manual::Relationship - Object relationships
+Persistence::Manual::Relationship - Object relationships
 
 =head1 DESCRIPTION
 
@@ -17,31 +17,27 @@ combination of two  one to many relationships with technical join table.
 
 Let's consider the following database entities relationships
 
-=begin relationships
 
------------     ------------     -----------     ------------      ------------
-| project |     | emp_proj |     |   emp   |     |  dept    |     | address   |
-|# projno |---|<|# projno  |>|---|# empno  |     |# deptno  |-----|# id       |
-|0 name   |     |# empno   |     |0 name   |     |0 dname   |     |0 town     |
-|         |     |          |     |0 deptno |>----|0 addr_id |     |0 postcode |
-|         |     |          |     |         |     |          |     |0 location |
-----------      ----------       ----------      ------------     ------------
-
-So we're having here the following relationships:
-
-- emp entity has many to one relationship with dept entity - thus dept entity has one to many relationship with emp entity
-
-- entity dept has one to one relationship with address entity- thus address entity has to one relationship with dept entity
-(in this case physical to_one relationship depens on where we place foreign key)
+    -----------     ------------     -----------     ------------      ------------
+    | project |     | emp_proj |     |   emp   |     |  dept    |     | address   |
+    |# projno |---|<|# projno  |>|---|# empno  |     |# deptno  |-----|# id       |
+    |0 name   |     |# empno   |     |0 name   |     |0 dname   |     |0 town     |
+    |         |     |          |     |0 deptno |>----|0 addr_id |     |0 postcode |
+    |         |     |          |     |         |     |          |     |0 location |
+    ----------      ----------       ----------      ------------     ------------
 
 
-- emp entity has many to many relationship with project and vice versa, but this is not direct relationship,
-however we can breaks it down to two direct one to many relationships with a technical join table.
-   - emp has one to many relationship with emp_proj
-   - project one to many relationship with emp_proj
+    So we're having here the following relationships:
+    
+    - emp entity has many to one relationship with dept entity - thus dept entity has one to many relationship with emp entity
+    - entity dept has one to one relationship with address entity- thus address entity has to one relationship with dept entity
+    (in this case physical to_one relationship depens on where we place foreign key)
+    - emp entity has many to many relationship with project and vice versa, but this is not direct relationship,
+    however we can breaks it down to two direct one to many relationships with a technical join table.
+       - emp has one to many relationship with emp_proj
+       - project one to many relationship with emp_proj
 
 
-=end relationships
 
 The following code defins our relationship examples.
 
@@ -141,11 +137,11 @@ The following code defins our relationship examples.
     $dept_entity->add_to_many_relationships(
         sql_relationship(target_entity => $emp_entity, join_columns => ['deptno'], order_by => 'deptno, empno')
     );
-    
+
     $dept_entity->add_to_one_relationships(
         sql_relationship(target_entity => $address_entity, join_columns => ['addr_id'])
     );
-    
+
     $entity_manager->add_entities($emp_project_entity, $emp_entity, $project_entity, $dept_entity, $address_entity);
 
 
@@ -201,7 +197,7 @@ and each Department has many Employees.
     package Employee;
     use Abstract::Meta::Class ':all';
     use Persistence::ORM ':all';
-    
+
     entity 'emp';
     column empno=> has('$.id');
     column ename => has('$.name');
@@ -252,7 +248,7 @@ and each Employee has exactly one Department
     package Employee;
     use Abstract::Meta::Class ':all';
     use Persistence::ORM ':all';
-    
+
     entity 'emp';
     column empno=> has('$.id');
     column ename => has('$.name');
@@ -277,7 +273,7 @@ Many to many relationship uses join table.
     package Employee;
     use Abstract::Meta::Class ':all';
     use Persistence::ORM ':all';
-    
+
     entity 'emp';
     column empno=> has('$.id');
     column ename => has('$.name');
@@ -297,5 +293,8 @@ Many to many relationship uses join table.
     entity 'project';
     column projno => has('$.id');
     column name => has('$.name');
+
+
+=back
 
 =cut

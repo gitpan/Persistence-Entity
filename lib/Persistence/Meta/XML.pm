@@ -17,7 +17,7 @@ use SQL::Entity::Condition;
 use Simple::SAX::Serializer;
 use Simple::SAX::Serializer::Handler ':all';
 
-$VERSION = 0.01;
+$VERSION = 0.03;
 
 =head1 NAME
 
@@ -255,7 +255,6 @@ sub persistence_xml_handler {
 }
 
 
-
 =item add_xml_persistence_handlers
 
 Adds persistence xml handlers/
@@ -273,7 +272,7 @@ sub add_xml_persistence_handlers {
         delete $temp_data->{$_} for qw(entities orm);
         $result;
     })),
-    
+
     $xml->handler('entities', ignore_node_handler());
     $xml->handler('to_many_relationships', ignore_node_handler());
     $xml->handler('entity_file', custom_array_handler($temp_data, undef, undef, 'entities'));
@@ -303,7 +302,6 @@ sub load_persistence_object {
         my $entity = $entity_xml_hander->parse_file($file_name, \%overwriten_entity_attributes);
         $self->entity($entity->id, $entity);
     }
-    
     $self->_initialise_subquery_columns();
     $self->_initialise_to_one_relationships();
     $self->_initialise_to_many_relationships();
@@ -321,10 +319,11 @@ sub load_persistence_object {
 
 =item orm_xml_handler
 
-    <!ELEMENT orm (column+, to_one_relationship*, one_to_many_relationship*, many_to_many_relationship*)
-    <!ATTRLIST orm class entity>
+    <!ELEMENT orm (column+, lob+, to_one_relationship*, one_to_many_relationship*, many_to_many_relationship*)
+    <!ATTRLIST orm class entity mop_attribute_adapter>
     <!ELEMENT column>
     <!ATTRLIST column name attribute>
+    <!ELEMENT lob name attribute fetch_method>
     <!ELEMENT to_one_relationship>
     <!ATTRLIST to_one_relationship name attribute #REQUIRED>
     <!ATTRLIST to_one_relationship fetch_method (LAZY|EAGER) "LAZY">
@@ -375,6 +374,7 @@ sub add_orm_xml_handlers {
         $self->create_orm_mapping($attributes, $children_result)
     });
     $xml->handler('column', hash_of_array_handler(undef, undef, 'columns'));
+    $xml->handler('lob', hash_of_array_handler(undef, undef, 'lobs'));
     $xml->handler('to_one_relationship', hash_of_array_handler(undef, undef, 'to_one_relationships'));
     $xml->handler('one_to_many_relationship', hash_of_array_handler(undef, undef, 'one_to_many_relationships'));
     $xml->handler('many_to_many_relationship', hash_of_array_handler(undef, undef, 'many_to_many_relationships'));
@@ -391,14 +391,20 @@ Takes
 sub create_orm_mapping {
     my ($self, $args, $rules) = @_;
     my $columns = $rules->{columns};
+    my $lobs  = $rules->{lobs};
     my $to_one_relationships = $rules->{to_one_relationships};
     my $one_to_many_relationships = $rules->{one_to_many_relationships};
     my $many_to_many_relationships = $rules->{many_to_many_relationships};
     $args->{entity_name} = $args->{entity}, delete $args->{entity};
     my $orm = Persistence::ORM->new(%$args);
+    my $columns_map = {};
     for my $column (@$columns) {
-         $orm->add_column($column->{name}, $column->{attribute});
+         $columns_map->{$column->{name}} = {name => $column->{attribute}};
     }
+    $orm->set_columns($orm->covert_to_attributes($columns_map));
+    my $lob_map = $orm->covert_to_lob_attributes($lobs);
+    $orm->set_lobs($lob_map);
+    
     for my $relation (@$to_one_relationships) {
         $self->_add_to_one_relationship($relation, $orm);
     }
@@ -474,7 +480,7 @@ sub _add_relationship_parameters {
 
 Retunds xml handlers that will transform the enity xml into Persistence::Entity
 
-    <!ELEMENT entity (primary_key*, indexes?, columns?, subquery_columns?,
+    <!ELEMENT entity (primary_key*, indexes?, columns?, lobs?, subquery_columns?,
     filter_condition_value+ .dml_filter_value+, to_one_relationships? to_many_relationships?, value_generators*)>
     <!ATTLIST entity id name alias unique_expression query_from schema order_index>
     <!ELEMENT primary_key (#PCDATA)>
@@ -483,11 +489,14 @@ Retunds xml handlers that will transform the enity xml into Persistence::Entity
     <!ATTLIST index name hint>
     <!ELEMENT index_columns (#PCDATA)>
     <!ELEMENT columns (column+) >
+    <!ELEMENT lobs (lob+) >
     <!ELEMENT subquery_columns (subquery_column+)>
     <!ELEMENT subquery_column>
     <!ATTLIST subquery_column entity name>
     <!ELEMENT column>
     <!ATTLIST column id name unique expression case_sensitive queryable insertable updatable>
+    <!ELEMENT lob>
+    <!ATTLIST lob id name siz_column>
     <!ELEMENT filter_condition_values (#PCDATA)>
     <!ATTLIST filter_condition_values name #REQUIRED>
     <!ELEMENT dml_filter_values (#PCDATA)>
@@ -517,6 +526,9 @@ Retunds xml handlers that will transform the enity xml into Persistence::Entity
             <column name="empno" />
             <column name="ename" />
         </columns>
+        <lobs>
+            <lob name="blob_content" size_column="doc_size" />
+         </lobs>
         <subquery_columns>
             <subquery_column name="dname" entity_id="dept" />
         </subquery_columns>
@@ -560,6 +572,8 @@ sub add_entity_xml_handlers {
     })),
     $xml->handler('columns', hash_item_of_child_value_handler());
     $xml->handler('columns/column', array_of_objects_handler(\&sql_column));
+    $xml->handler('lobs', hash_item_of_child_value_handler());
+    $xml->handler('lobs/lob', array_of_objects_handler(\&sql_lob));
     $xml->handler('indexes', hash_item_of_child_value_handler());
     $xml->handler('index', array_of_objects_handler(\&sql_index));
     $xml->handler('index_column', array_handler('columns'));
@@ -754,5 +768,3 @@ the Perl README file.
 Adrian Witas,adrian@webapp.strefa.pl
 
 =cut
-
-1;

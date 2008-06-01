@@ -31,6 +31,7 @@ $entity_manager->add_entities(
 );
 
 my $persitence = Persistence::ORM->new(
+    mop_attribute_adapter => 'Persistence::Attribute::AMCAdapter',
     entity_name => 'emp',
     class       => 'Employee',
     columns     => {

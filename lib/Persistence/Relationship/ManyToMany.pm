@@ -159,7 +159,7 @@ sub deserialise_attribute {
         or confess "cant find entity" . $self->name;
     my $join_entity = $entity_manager->entity($self->join_entity_name);
     my $relation = $entity->to_many_relationship($self->join_entity_name);
-    my %fields_values = $orm->map_object_attributes_to_column_values($object);
+    my %fields_values = $orm->column_values($object);
     my %join_values = $entity->_join_columns_values($relation, \%fields_values);
     return unless(map {$join_values{$_} ? ($_) : () }  keys %join_values);
     my $condition = SQL::Entity::Condition->struct_to_condition(map {$join_entity->column($_), $join_values{$_}} keys %join_values);

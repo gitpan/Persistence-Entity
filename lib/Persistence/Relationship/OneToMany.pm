@@ -18,8 +18,6 @@ $VERSION = 0.01;
 
 Persistence::Relationship::OneToMany - One to many relationship.
 
-=cut  
-
 =head1 CLASS HIERARCHY
 
  Persistence::Relationship

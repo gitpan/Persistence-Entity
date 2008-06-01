@@ -1,6 +1,6 @@
 =head1 NAME
 
-Persisistence::Manual - Index of the Manual
+Persistence::Manual - Index of the Manual
 
 =head1 DESCRIPTION
 
@@ -9,7 +9,7 @@ for the persisitence API between database entities and perl classes.
 
 =head1 SECTIONS
 
-=head2 L<Persisistence::Manual::Introduction>
+=head2 L<Persistence::Manual::Introduction>
 
 Beginner guide to using persistence API.
 
@@ -20,5 +20,9 @@ Persistence actions.
 =head2 L<Persistence::Manual::Relationship>
 
 Object relationships
+
+=head2 L<Persistence::Manual::LOBs>
+
+Large objects attributes persisitence.
 
 =cut

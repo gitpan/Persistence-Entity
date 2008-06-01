@@ -1,6 +1,6 @@
 =head1 NAME 
 
-Persisistence::Manual::EntityManager - Persistence actions..
+Persistence::Manual::EntityManager - Persistence actions..
 
 =head1 DESCRIPTION
 
