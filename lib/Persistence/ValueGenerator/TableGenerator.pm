@@ -1,6 +1,5 @@
 package Persistence::ValueGenerator::TableGenerator;
 
-
 use strict;
 use warnings;
 use vars qw(@EXPORT_OK %EXPORT_TAGS $VERSION);

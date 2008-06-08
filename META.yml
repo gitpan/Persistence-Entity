@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Persistence-Entity
-version:             0.04
+version:             0.05
 author:
   - 'Adrian Witas <adrian@webapp.strefa.pl>'
 abstract: Persistence API for perl classes.
@@ -10,11 +10,12 @@ resources:
 generated_by:        ExtUtils::MakeMaker version 6.3201
 distribution_type:   module
 requires:     
-    Abstract::Meta::Class:         0.08
+    Abstract::Meta::Class:         0.1
     Carp:                          0
     DBIx::Connection:              0.06
     Simple::SAX::Serializer:       0.04
     SQL::Entity:                   0.04
+    Storable:                      0
     Test::DBUnit:                  0.07
     Test::Pod:                     0
     Test::Pod::Coverage:           0

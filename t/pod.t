@@ -1,12 +1,13 @@
 use warnings;
 use strict;
 
-use Test::Pod tests => 21;
+use Test::Pod tests => 22;
 
 pod_file_ok('lib/Persistence/Entity.pm', "should have POD for lib/Persistence/Entity.pm file");
 pod_file_ok('lib/Persistence/Entity/Query.pm', "should have POD for lib/Persistence/Entity/Query.pm");
 pod_file_ok('lib/Persistence/Entity/Manager.pm', "should have POD for lib/Persistence/Entity/Manager.pm");
 pod_file_ok('lib/Persistence/Meta/XML.pm', "should have POD for lib/Persistence/Meta/XML.pm");
+pod_file_ok('lib/Persistence/Meta/Injection.pm', "should have POD for lib/Persistence/Meta/Injection.pm");
 pod_file_ok('lib/Persistence/Relationship/ManyToMany.pm', "should have POD for lib/Persistence/Relationship/ManyToMany.pm");
 pod_file_ok('lib/Persistence/Relationship/OneToMany.pm', "should have POD for lib/Persistence/Relationship/OneToMany.pm");
 pod_file_ok('lib/Persistence/Relationship/ToOne.pm', "should have POD for lib/Persistence/Relationship/ToOne.pm");

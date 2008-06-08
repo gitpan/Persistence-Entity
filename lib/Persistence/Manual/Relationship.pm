@@ -1,3 +1,7 @@
+use strict;
+use warnings;
+
+
 =head1 NAME 
 
 Persistence::Manual::Relationship - Object relationships
@@ -147,8 +151,6 @@ The following code defines our relationship examples.
 
 Note:
 When adding to_many relationsnship,on the other side reflective to_one relationship. is created automaticaly.
-
-
 
 =head2 Objects Relationships
 

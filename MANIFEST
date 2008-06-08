@@ -12,6 +12,7 @@ lib/Persistence/Manual/EntityManager.pm
 lib/Persistence/Manual/Introduction.pm
 lib/Persistence/Manual/LOB.pm
 lib/Persistence/Manual/Relationship.pm
+lib/Persistence/Meta/Injection.pm
 lib/Persistence/Meta/XML.pm
 lib/Persistence/ORM.pm
 lib/Persistence/Relationship.pm

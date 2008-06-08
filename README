@@ -1,4 +1,4 @@
-Persistence/Entity version 0.04
+Persistence/Entity version 0.05
 ===========================
     Persistence layer
 
@@ -19,6 +19,7 @@ This module requires these other modules and libraries:
   DBIx::Connection
   SQL::Entity
   Simple::SAX::Serializer
+  Storable
 
 COPYRIGHT AND LICENCE
 

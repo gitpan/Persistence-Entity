@@ -7,7 +7,7 @@ use vars qw($VERSION);
 use Abstract::Meta::Class ':all';
 use base 'SQL::Query';
 
-$VERSION = 0.01;
+$VERSION = 0.02;
 
 =head1 NAME
 

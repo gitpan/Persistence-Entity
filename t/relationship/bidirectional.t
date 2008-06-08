@@ -28,7 +28,10 @@ use Persistence::Meta::XML;
     
 }
 
-my $meta = Persistence::Meta::XML->new(persistence_dir => 't/relationship/meta/');
+my $meta = Persistence::Meta::XML->new(
+    persistence_dir => 't/relationship/meta/',
+);
+
 my $entity_manager = $meta->inject('persistence.xml');
 isa_ok($entity_manager, 'Persistence::Entity::Manager');
 

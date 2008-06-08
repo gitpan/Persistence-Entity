@@ -1,4 +1,11 @@
-=head1 NAME 
+use strict;
+use warnings;
+
+use vars qw($VERSION);
+
+$VERSION = 0.02;
+
+=head1 NAME
 
 Persistence::Manual::EntityManager - Persistence actions..
 

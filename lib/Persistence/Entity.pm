@@ -23,7 +23,7 @@ use SQL::Entity ':all';
 
 %EXPORT_TAGS = (all => \@EXPORT_OK);
 
-$VERSION = 0.03;
+$VERSION = 0.05;
 
 =head1 NAME
 
@@ -158,7 +158,6 @@ Hash that contains pair of column and its value generator.
 =cut
 
 has '%.value_generators' => (
-    transistent   => 1,
     item_accessor => 'value_generator'
 );
 

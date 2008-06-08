@@ -184,7 +184,8 @@ has '$.object_creation_method' => (
     on_change => sub {
         my ($self, $attribute, $scope, $value) = @_;
         confess "invalid value for " . __PACKAGE__ . "::object_creation_method - allowed values(bless | new)"
-            if $$value ne 'bless' && $$value ne 'new' 
+            if ($$value ne 'bless' && $$value ne 'new');
+        $self;
     }
 );
 
@@ -432,9 +433,14 @@ Deserialises resultset to object.
 
 sub deserialise {
     my ($self, $args, $entity_manager) = @_;
-    my $result = bless {
+    my $object_creation_method = $self->object_creation_method;
+    my $columns_to_attributes = $self->columns_to_attributes;
+    my $result = $object_creation_method eq 'bless'
+        ? bless ({
         $self->storage_attribute_values($args)
-    }, $self->class;
+    }, $self->class)
+        : $self->class->new(map { $args->{$_} } keys %$columns_to_attributes);
+
     $entity_manager->initialise_operation($self->entity_name, $result);
     $self->deserialise_eager_relation_attributes($result, $entity_manager);
     $self->deserialise_eager_lob_attributes($result, $entity_manager);

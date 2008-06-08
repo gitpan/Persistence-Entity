@@ -9,6 +9,7 @@ use Carp 'confess';
 use Persistence::Entity::Manager;
 use Persistence::Entity ':all';
 use Persistence::ORM;
+use Persistence::Meta::Injection;
 use Persistence::Relationship;
 use Persistence::Relationship::ToOne;
 use Persistence::Relationship::OneToMany;
@@ -17,7 +18,8 @@ use SQL::Entity::Condition;
 use Simple::SAX::Serializer;
 use Simple::SAX::Serializer::Handler ':all';
 
-$VERSION = 0.03;
+
+$VERSION = 0.04;
 
 =head1 NAME
 
@@ -138,34 +140,6 @@ None
 
 =over
 
-=item entities
-
-=cut
-
-has '%.entities' => (item_accessor => 'entity');
-
-
-=item _entities_subquery_columns
-
-=cut
-
-has '%._entities_subquery_columns';
-
-
-=item _entities_to_many_relationship
-
-=cut
-
-has '%._entities_to_many_relationships';
-
-
-=item _entities_to_one_relationship
-
-=cut
-
-has '%._entities_to_one_relationships';
-
-
 =item cache_dir
 
 Containts cache directory.
@@ -177,7 +151,16 @@ has '$.cache_dir';
 
 =item use_cache
 
-Flag that indicates if use cache.
+Flag that indicates if cache is used.
+
+=cut
+
+has '$.use_cache' => (default => 0);
+
+
+=item persistence_dir
+
+Directory for xml meta persistence definition.
 
 =cut
 
@@ -191,11 +174,29 @@ Contains directory of xml files that contain persistence object definition.
 =cut
 
 
+=item injection
+
+=cut
+
+has '$.injection';
+
+
 =back
 
 =head2 METHODS
 
 =over
+
+=item initialise
+
+=cut
+
+sub initialise {
+    my ($self) = @_;
+    $self->set_cache_dir($self->persistence_dir)
+        if ($self->use_cache && ! $self->cache_dir);
+}
+
 
 =item inject
 
@@ -211,12 +212,23 @@ Takes xml file definition
 
 sub inject {
     my ($self, $file) = @_;
-    $self->_entities_subquery_columns({});
-    $self->_entities_to_many_relationships({});
-    $self->_entities_to_one_relationships({});
-    my $xml = $self->persistence_xml_handler;
+    my $injection;
     my $prefix_dir = $self->persistence_dir;
-    $xml->parse_file($prefix_dir . $file);
+    my $file_name = $prefix_dir . $file;
+    if($self->use_cache) {
+        my $cached_injection = Persistence::Meta::Injection->load_from_cache($self, $file_name);
+        $injection = $cached_injection
+            if $cached_injection && $cached_injection->can_use_cache;
+    }
+
+    $injection ||= Persistence::Meta::Injection->new;
+    $self->set_injection($injection);
+    unless ($injection->cached_version) {
+        $injection->add_file_stat($file_name);
+        my $xml = $self->persistence_xml_handler;
+        $xml->parse_file($prefix_dir . $file);
+    }
+    $self->injection->load_persistence_context($self, $file);
 }
 
 
@@ -233,7 +245,7 @@ Persistence node is mapped to the Persistence::Entity::Manager;
     <!ATTLIST entity_file file id order_index>
     <!ELEMENT mapping_rules (orm_file+)>
     <!ATTLIST mapping_rules file>
-    
+
     <?xml version='1.0' encoding='UTF-8'?>
     <persistence name="test"  connection_name="test" >
         <entities>
@@ -264,11 +276,13 @@ Takes Simple::SAX::Serializer object as parameter.
 
 sub add_xml_persistence_handlers {
     my ($self, $xml) = @_;
-
     my $temp_data = {};
     $xml->handler('persistence', root_object_handler('Persistence::Entity::Manager' , sub {
         my ($result) = @_;
-        $self->load_persistence_object($result, $temp_data->{entities}, $temp_data->{orm});
+        my $injection = $self->injection;
+        $injection->set_entity_manager($result);
+        $injection->set_orm_files(\@{$temp_data->{orm}});
+        $injection->set_entities_files(\@{$temp_data->{entities}});
         delete $temp_data->{$_} for qw(entities orm);
         $result;
     })),
@@ -280,41 +294,7 @@ sub add_xml_persistence_handlers {
     $xml->handler('dml_filter_values', hash_handler());
     $xml->handler('mapping_rules', ignore_node_handler());
     $xml->handler('orm_file', custom_array_handler($temp_data, undef, undef, 'orm'));
-    
 }
-
-
-=item load_persistence_object
-
-Loads persistence object.
-Takes entity manager object, array ref of the entity files, array ref of the ORM files.
-
-=cut
-
-sub load_persistence_object {
-    my ($self, $entity_manager, $entity_files, $orm_files) = @_;
-    my $entity_xml_hander = $self->entity_xml_handler;
-    my $orm_xml_handler = $self->orm_xml_handler;
-    my $prefix_dir = $self->persistence_dir;
-    for my $entity_ref (@$entity_files) {
-        my $file_name = $prefix_dir . $entity_ref->{file};
-        my %overwriten_entity_attributes = (map { $_ ne 'file' ? ($_ => $entity_ref->{$_}) : ()} keys %$entity_ref);
-        my $entity = $entity_xml_hander->parse_file($file_name, \%overwriten_entity_attributes);
-        $self->entity($entity->id, $entity);
-    }
-    $self->_initialise_subquery_columns();
-    $self->_initialise_to_one_relationships();
-    $self->_initialise_to_many_relationships();
-    
-    my %entities = $self->entities;
-    $entity_manager->add_entities(values %entities);
-    for my $orm_ref (@$orm_files) {
-        my $file_name = $prefix_dir . $orm_ref->{file};
-        $orm_xml_handler->parse_file($file_name);
-    }
-    
-}
-
 
 
 =item orm_xml_handler
@@ -369,9 +349,11 @@ sub add_orm_xml_handlers {
     my $temp_data = {};
     $xml->handler('orm', sub {
         my ($this, $element, $parent) = @_;
+        my $injection = $self->injection;
+        my $orm_mapping = $injection->_orm_mapping;
         my $attributes = $element->attributes;
         my $children_result = $element->children_result || {};
-        $self->create_orm_mapping($attributes, $children_result)
+        push @$orm_mapping, {%$attributes}, {%$children_result};
     });
     $xml->handler('column', hash_of_array_handler(undef, undef, 'columns'));
     $xml->handler('lob', hash_of_array_handler(undef, undef, 'lobs'));
@@ -379,101 +361,6 @@ sub add_orm_xml_handlers {
     $xml->handler('one_to_many_relationship', hash_of_array_handler(undef, undef, 'one_to_many_relationships'));
     $xml->handler('many_to_many_relationship', hash_of_array_handler(undef, undef, 'many_to_many_relationships'));
 }
-
-
-=item create_orm_mapping
-
-Creates orm mappings.
-Takes 
-
-=cut
-
-sub create_orm_mapping {
-    my ($self, $args, $rules) = @_;
-    my $columns = $rules->{columns};
-    my $lobs  = $rules->{lobs};
-    my $to_one_relationships = $rules->{to_one_relationships};
-    my $one_to_many_relationships = $rules->{one_to_many_relationships};
-    my $many_to_many_relationships = $rules->{many_to_many_relationships};
-    $args->{entity_name} = $args->{entity}, delete $args->{entity};
-    my $orm = Persistence::ORM->new(%$args);
-    my $columns_map = {};
-    for my $column (@$columns) {
-         $columns_map->{$column->{name}} = {name => $column->{attribute}};
-    }
-    $orm->set_columns($orm->covert_to_attributes($columns_map));
-    my $lob_map = $orm->covert_to_lob_attributes($lobs);
-    $orm->set_lobs($lob_map);
-    
-    for my $relation (@$to_one_relationships) {
-        $self->_add_to_one_relationship($relation, $orm);
-    }
-    for my $relation (@$one_to_many_relationships) {
-        $self->_add_one_to_many_relationship($relation, $orm);
-    }
-    for my $relation (@$many_to_many_relationships) {
-        $self->_add_many_to_many_relationship($relation, $orm);
-    }
-    
-    $orm;
-}
-
-
-
-=item _add_one_to_many_relationship
-
-=cut
-
-sub _add_one_to_many_relationship {
-    my ($self, $relationship, $orm) = @_;
-    Persistence::Relationship::OneToMany->add_relationship($self->_add_relationship_parameters($relationship, $orm));
-}
-
-
-
-=item _add_to_many_to_many_relationship
-
-=cut
-
-sub _add_many_to_many_relationship {
-    my ($self, $relationship, $orm) = @_;
-    Persistence::Relationship::ManyToMany->add_relationship($self->_add_relationship_parameters($relationship, $orm));
-}
-
-
-=item _add_to_one_relationship
-
-=cut
-
-sub _add_to_one_relationship {
-    my ($self, $relationship, $orm) = @_;
-    Persistence::Relationship::ToOne->add_relationship($self->_add_relationship_parameters($relationship, $orm));
-}
-
-
-=item _add_relationship_parameters
-
-=cut
-
-sub _add_relationship_parameters {
-    my ($self, $relationship, $orm) = @_;
-    my $attribute = $orm->attribute($relationship->{attribute});
-    
-    my @result = ($orm->class, $relationship->{name}, attribute => $attribute);
-    if (my $fetch_method = $relationship->{fetch_method}) {
-        push @result, 'fetch_method' => Persistence::Relationship->$fetch_method();
-    }
-    if (my $cascade = $relationship->{cascade}) {
-        push @result, 'cascade' => Persistence::Relationship->$cascade();
-    }
-    
-    if (my $join_entity = $relationship->{join_entity}) {
-        push @result, 'join_entity_name' => $join_entity;
-    }
-    @result;
-}
-
-
 
 
 =item entity_xml_handler
@@ -509,7 +396,7 @@ Retunds xml handlers that will transform the enity xml into Persistence::Entity
     <!ELEMENT condition (condition+) >
     <!ATTLIST condition operand1  operator operand2 relation>
     <!ELEMENT value_generators (#PCDATA)>
-    
+
     For instnace.
     <?xml version="1.0" encoding="UTF-8"?>
     <entity name="emp" alias="e">
@@ -558,12 +445,13 @@ Adds entity xml handler to the Simple::SAX::Serializer object.
 sub add_entity_xml_handlers {
     my ($self, $xml) = @_;
     my $temp_data = {};
-    my $entities_subquery_columns = $self->_entities_subquery_columns;
-    my $entities_to_many_relationships = $self->_entities_to_many_relationships;
-    my $entities_to_one_relationships = $self->_entities_to_one_relationships;
     $xml->handler('entity', root_object_handler('Persistence::Entity' , sub {
         my ($result) = @_;
         my $id = $result->id;
+        my $injection = $self->injection;
+        my $entities_subquery_columns = $injection->_entities_subquery_columns;
+        my $entities_to_many_relationships = $injection->_entities_to_many_relationships;
+        my $entities_to_one_relationships = $injection->_entities_to_one_relationships;
         $entities_subquery_columns->{$id} = \@{$temp_data->{subquery_columns}};
         $entities_to_many_relationships->{$id} = \@{$temp_data->{to_many_relationships}};
         $entities_to_one_relationships->{$id} = \@{$temp_data->{to_one_relationships}};
@@ -594,152 +482,16 @@ sub add_entity_xml_handlers {
 
 
 
-=item _initialise_subquery_columns
+=item cache_file_name
 
-Initialise subquery columns
-
-=cut
-
-sub _initialise_subquery_columns {
-    my ($self) = @_;
-    my $entities = $self->entities;
-    my $entities_subquery_columns = $self->_entities_subquery_columns;
-    for my $entity_id (keys %$entities_subquery_columns) {
-        my $entity = $entities->{$entity_id};
-        my @subquery_columns;
-        my $subquery_columns = $entities_subquery_columns->{$entity_id};
-        for my $column_definition (@$subquery_columns) {
-            push @subquery_columns,
-                $self->entity_column($column_definition->{entity}, $column_definition->{name});
-        }
-        $entity->add_subquery_columns(@subquery_columns)
-            if @subquery_columns;
-    }
-}
-
-
-=item _initialise_to_one_relationship
-
-Initialise to one relationships
+Returns fulle path to cache file, takes persistence file name.
 
 =cut
 
-sub _initialise_to_one_relationships {
-    my ($self) = @_;
-    $self->_initialise_relationships('to_one_relationships');
-}
-
-
-=item _initialise_to_many_relationship
-
-Initialise to manye relationships
-
-=cut
-
-sub _initialise_to_many_relationships {
-    my ($self) = @_;
-    $self->_initialise_relationships('to_many_relationships');
-}
-
-
-=item _initialise_relationships
-
-Initialises relationshsips
-Takes relationship type as parameters.
-Allowed value: 'to_one_relationships', 'to_many_relationships'
-
-=cut
-
-sub _initialise_relationships {
-    my ($self, $relationship_type) = @_;
-    my $entities = $self->entities;
-    my $relationship_accessor = "_entities_${relationship_type}";
-    my $entities_relationships = $self->$relationship_accessor;
-    my $mutator = "add_${relationship_type}";
-
-    for my $entity_id (keys %$entities_relationships) {
-        my $entity = $entities->{$entity_id};
-        my @relationships;
-        my $relationships = $entities_relationships->{$entity_id};
-        
-        for my $relationship (@$relationships) {
-            push @relationships, $self->_relationship($relationship);
-        }
-        
-        if (@relationships) {
-            $entity->$mutator(@relationships)
-        }
-            
-    }
-}
-
-
-=item _relationship
-
-Returns the relationship object.
-Takes hash_ref, that will be transformed to the new object parameters.
-
-=cut
-
-sub _relationship {
-    my ($self, $relationship) = @_;
-    my $entity = $self->entity($relationship->{target_entity})
-        or confess "unknow entity " . $relationship->{target_entity};
-    $relationship->{target_entity} = $entity;
-    my $condition = $relationship->{condition};
-    $self->_parse_condition($condition) if $condition;
-    sql_relationship(%$relationship);
-}
-
-
-=item _parse_condition
-
-Parses condition object to replacase ant occurence of  <entity>.<column> to column object.
-
-=cut
-
-sub _parse_condition {
-    my ($self, $condition) = @_;
-    {
-        my $operand1 = $condition->operand1;
-        my ($entity, $column) = $self->has_column($operand1);
-        $condition->set_operand1($self->entity_column($entity, $column)) if($column)
-    }
-    {
-        my $operand2 = $condition->operand2;
-        my ($entity, $column) = $self->has_column($operand2);
-        $condition->set_operand2($self->entity_column($entity, $column)) if($column)
-    }
-    my $conditions = $condition->conditions;
-    for my $k (@$conditions) {
-        $self->_parse_condition($k);
-    }
-
-}
-
-
-=item has_column
-
-=cut
-
-sub has_column {
-    my ($self, $text) = @_;
-    ($text =~ m /^sql_column:(\w+)\.(\w+)/);
-}
-
-=item entity_column
-
-Returns entity column
-
-=cut
-
-sub entity_column {
-    my ($self, $entity_id, $column_id) = @_;
-    my $entities = $self->entities;
-    my $entity = $entities->{$entity_id}
-        or confess "unknown entity: ${entity_id}";
-    my $column = $entity->column($column_id)
-        or confess "unknown column ${column_id} on entity ${entity_id}";
+sub cache_file_name {
+    my ($self, $file) = @_;
+    my ($file_name) = $file =~ /([\w]+)\.xml$/i;
+    $self->cache_dir . $file_name .'.cache';
 }
 
 

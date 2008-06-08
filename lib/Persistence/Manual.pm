@@ -1,3 +1,10 @@
+use strict;
+use warnings;
+
+use vars qw($VERSION);
+
+$VERSION = 0.02;
+
 =head1 NAME
 
 Persistence::Manual - Index of the Manual
@@ -13,7 +20,7 @@ for the persisitence API between database entities and perl classes.
 
 Beginner guide to using persistence API.
 
-=head2 L<Persistence::Manual::EntityManage>
+=head2 L<Persistence::Manual::EntityManager>
 
 Persistence actions.
 
