@@ -1,7 +1,7 @@
 use warnings;
 use strict;
 
-use Test::Pod tests => 22;
+use Test::Pod tests => 23;
 
 pod_file_ok('lib/Persistence/Entity.pm', "should have POD for lib/Persistence/Entity.pm file");
 pod_file_ok('lib/Persistence/Entity/Query.pm', "should have POD for lib/Persistence/Entity/Query.pm");
@@ -25,5 +25,6 @@ pod_file_ok('lib/Persistence/Manual/Introduction.pm', "should have POD for lib/P
 pod_file_ok('lib/Persistence/Manual/EntityManager.pm', "should have POD for lib/Persistence/Manual/EntityManager.pm");
 pod_file_ok('lib/Persistence/Manual/Relationship.pm', "should have POD for lib/Persistence/Manual/Relationship.pm");
 pod_file_ok('lib/Persistence/Manual/LOB.pm', "should have POD for lib/Persistence/Manual/LOB.pm");
+pod_file_ok('lib/Persistence/Manual/ValueGenerator.pm', "should have POD for lib/Persistence/Manual/ValueGenerator.pm");
 
 

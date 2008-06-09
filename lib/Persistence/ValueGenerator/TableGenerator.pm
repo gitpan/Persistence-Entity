@@ -8,7 +8,7 @@ use base qw (Exporter Persistence::ValueGenerator);
 use Abstract::Meta::Class ':all';
 use Persistence::Entity;
 
-$VERSION = 0.01;
+$VERSION = 0.02;
 
 @EXPORT_OK = qw(table_generator);
 %EXPORT_TAGS = (all => \@EXPORT_OK);
@@ -16,7 +16,7 @@ $VERSION = 0.01;
 
 =head1 NAME
 
-Persistence::ValueGenerator::TableGenerator - Unique value generator based on databse table
+Persistence::ValueGenerator::TableGenerator - Unique value generator based on database table
 
 =cut
 

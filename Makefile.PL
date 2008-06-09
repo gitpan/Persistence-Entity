@@ -1,12 +1,12 @@
 
 use ExtUtils::MakeMaker;
+use 5.006;
 
 WriteMakefile(
     NAME         => 'Persistence::Entity',
     VERSION_FROM => 'lib/Persistence/Entity.pm',
     DISTNAME     => 'Persistence-Entity',
     PREREQ_PM    => { 
-        
         'Abstract::Meta::Class'   => 0.10,
         'SQL::Entity'             => 0.04,
 	'DBIx::Connection'        => 0.06,

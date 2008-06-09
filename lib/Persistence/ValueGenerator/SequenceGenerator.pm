@@ -10,11 +10,11 @@ use Abstract::Meta::Class ':all';
 @EXPORT_OK = qw(sequence_generator);
 %EXPORT_TAGS = (all => \@EXPORT_OK);
 
-$VERSION = 0.01;
+$VERSION = 0.02;
 
 =head1 NAME
 
-Persistence::ValueGenerator::SequenceGenerator - Unique value generator based on databse sequence
+Persistence::ValueGenerator::SequenceGenerator - Unique value generator based on database sequence
 
 =head1 CLASS HIERARCHY
 

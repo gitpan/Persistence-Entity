@@ -32,4 +32,8 @@ Object relationships
 
 Large objects attributes persisitence.
 
+=head2 L<Persistence::Manual::ValueGenerator>
+
+The primary key value generator.
+
 =cut

@@ -3,7 +3,7 @@ use warnings;
 
 use vars qw($VERSION);
 
-$VERSION = 0.02;
+$VERSION = 0.03;
 
 =head1 NAME
 
@@ -54,7 +54,7 @@ We are using lob method that teks LOB column name, attribute , fetch method as p
 
 =item XML Mapping File
 
-If you do not want to interact directly with ORM or Entity meta protocal to declare map between your class and entity,
+If you do not want to interact directly with ORM or Entity meta protocol to declare map between your class and entity,
 or entity and database you can alternatively use an XML mapping file to declare this metadata.
 
 Perl class

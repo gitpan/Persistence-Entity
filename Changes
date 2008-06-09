@@ -1,5 +1,9 @@
 Revision history for Perl extension Persistence::Entity.
 
+0.06  Mon Jun 09 2008
+    - Extended xml schema for value_generators
+    - Added ValueGenerator manual
+
 0.05  Mon Jun 02 2008
     - Add caching to xml injection
     - Fix orm bless/new object instancation

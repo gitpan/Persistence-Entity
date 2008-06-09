@@ -237,7 +237,7 @@ sub inject {
 Retunds xml handlers that will transform the persistence xml into objects.
 Persistence node is mapped to the Persistence::Entity::Manager;
 
-    <!ELEMENT persistence (entities+,mapping_rules*)>
+    <!ELEMENT persistence (entities+,mapping_rules*, value_generators*)>
     <!ATTLIST persistence name #REQUIRED>
     <!ATTLIST persistence connection_name #REQUIRED>
     <!ELEMENT entities (entity_file+)>
@@ -245,6 +245,11 @@ Persistence node is mapped to the Persistence::Entity::Manager;
     <!ATTLIST entity_file file id order_index>
     <!ELEMENT mapping_rules (orm_file+)>
     <!ATTLIST mapping_rules file>
+    <!ELEMENT value_generators (sequence_generator*, table_generator*)>
+    <!ELEMENT sequence_generator>
+    <!ATTLIST sequence_generator name sequence_name allocation_size>
+    <!ELEMENT table_generator>
+    <!ATTLIST table_generator name table primary_key_column_name primary_key_column_value value_column allocation_size>
 
     <?xml version='1.0' encoding='UTF-8'?>
     <persistence name="test"  connection_name="test" >
@@ -255,7 +260,13 @@ Persistence node is mapped to the Persistence::Entity::Manager;
         <mapping_rules>
             <orm_file file="Employee" />
         </mapping_rules>
+        <value_generators>
+            <sequence_generator name="pk_generator" sequence_name="cust_seq" allocation_size="1" />
+            <table_generator name="pk_generator" table="primary_key_generator" primary_key_column_name="pk_column" primary_key_column_value="empno" value_column="alue_column" allocation_size="20" />
+        </value_generators>
     </persistence>
+
+
 
 =cut
 
@@ -283,17 +294,22 @@ sub add_xml_persistence_handlers {
         $injection->set_entity_manager($result);
         $injection->set_orm_files(\@{$temp_data->{orm}});
         $injection->set_entities_files(\@{$temp_data->{entities}});
-        delete $temp_data->{$_} for qw(entities orm);
+        $injection->set_sequence_generators(\@{$temp_data->{sequence_generators}});
+        $injection->set_table_generators(\@{$temp_data->{table_generators}});
+        delete $temp_data->{$_} for qw(entities orm sequence_generators table_generators);
         $result;
     })),
 
     $xml->handler('entities', ignore_node_handler());
+    $xml->handler('value_generators', ignore_node_handler());
     $xml->handler('to_many_relationships', ignore_node_handler());
     $xml->handler('entity_file', custom_array_handler($temp_data, undef, undef, 'entities'));
     $xml->handler('filter_condition_values', hash_handler());
     $xml->handler('dml_filter_values', hash_handler());
     $xml->handler('mapping_rules', ignore_node_handler());
     $xml->handler('orm_file', custom_array_handler($temp_data, undef, undef, 'orm'));
+    $xml->handler('sequence_generator', custom_array_handler($temp_data, undef, undef, 'sequence_generators'));
+    $xml->handler('table_generator', custom_array_handler($temp_data, undef, undef, 'table_generators'));
 }
 
 
@@ -466,7 +482,7 @@ sub add_entity_xml_handlers {
     $xml->handler('index', array_of_objects_handler(\&sql_index));
     $xml->handler('index_column', array_handler('columns'));
     $xml->handler('primary_key', array_handler());
-    $xml->handler('value_generators', hash_handler());
+    $xml->handler('value_generator', hash_handler('value_generators', 'column'));
     $xml->handler('filter_condition_values', hash_handler());
     $xml->handler('dml_filter_values', hash_handler());
     $xml->handler('subquery_columns', ignore_node_handler());
@@ -479,7 +495,6 @@ sub add_entity_xml_handlers {
     $xml->handler('condition', object_handler('SQL::Entity::Condition'));
     $xml->handler('condition/condition', hash_of_object_array_handler('SQL::Entity::Condition', undef, undef, 'conditions'));
 }
-
 
 
 =item cache_file_name

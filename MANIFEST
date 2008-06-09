@@ -12,6 +12,7 @@ lib/Persistence/Manual/EntityManager.pm
 lib/Persistence/Manual/Introduction.pm
 lib/Persistence/Manual/LOB.pm
 lib/Persistence/Manual/Relationship.pm
+lib/Persistence/Manual/ValueGenerator.pm
 lib/Persistence/Meta/Injection.pm
 lib/Persistence/Meta/XML.pm
 lib/Persistence/ORM.pm
@@ -106,5 +107,10 @@ t/sql/PostgreSQL/populate_schema.sql
 t/value_generator.t
 t/value_generator.table_generator-result.xml
 t/value_generator.table_generator.xml
+t/value_generator/meta/xml/emp.xml
+t/value_generator/meta/xml/persistence.xml
 t/value_generator/sequence_generator.t
 t/value_generator/table_generator.t
+t/value_generator/value_generator.t
+t/value_generator/value_generator.table_generator-result.xml
+t/value_generator/value_generator.table_generator.xml

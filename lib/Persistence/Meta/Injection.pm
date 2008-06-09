@@ -11,6 +11,9 @@ use Persistence::Relationship;
 use Persistence::Relationship::ToOne;
 use Persistence::Relationship::OneToMany;
 use Persistence::Relationship::ManyToMany;
+use Persistence::ValueGenerator::TableGenerator;
+use Persistence::ValueGenerator::SequenceGenerator;
+
 use Storable qw(store retrieve);
 
 $VERSION = 0.01;
@@ -75,11 +78,25 @@ has '%._entities_to_one_relationships';
 has '@.orm_files';
 
 
-=item entities_meta
+=item entities_files
 
 =cut
 
 has '@.entities_files';
+
+
+=item sequence_generators
+
+=cut
+
+has '@.sequence_generators';
+
+
+=item table_generators
+
+=cut
+
+has '@.table_generators';
 
 
 =item _orm_mapping
@@ -142,6 +159,7 @@ sub load_persistence_context {
         $self->_initialise_subquery_columns();
         $self->_initialise_to_one_relationships();
         $self->_initialise_to_many_relationships();
+        $self->_initialise_value_generators();
     
         for my $orm_ref (@$orm_files) {
             my $file_name = $prefix_dir . $orm_ref->{file};
@@ -207,6 +225,34 @@ sub can_use_cache {
     }
     $result;
 }
+
+
+=item _initialise_value_generators
+
+Initialises value generators
+
+=cut
+
+sub _initialise_value_generators {
+    my ($self) = @_;
+    $self->_initialise_generators('Persistence::ValueGenerator::TableGenerator', 'table_generators');
+    $self->_initialise_generators('Persistence::ValueGenerator::SequenceGenerator', 'sequence_generators');
+}
+
+
+=item _initialise_table_value_generators
+
+=cut
+
+sub _initialise_generators {
+    my ($self, $class, $accessor) = @_;
+    my $entity_manager = $self->entity_manager;
+    my $generators = $self->$accessor;
+    for my $generator (@$generators) {
+        $class->new(%$generator, entity_manager_name => $entity_manager->name);
+    }
+}
+
 
 =item _initialise_subquery_columns
 
