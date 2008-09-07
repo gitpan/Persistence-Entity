@@ -11,7 +11,8 @@ CREATE TABLE address (
  id MEDIUMINT AUTO_INCREMENT, 
  locaction  VARCHAR(20),
  town       VARCHAR(20),
- postcod    VARCHAR(20),
+ postcode   VARCHAR(20),
+ loc	    VARCHAR(20),
  CONSTRAINT address_pk PRIMARY KEY (id)
 );
 

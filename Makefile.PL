@@ -8,7 +8,7 @@ WriteMakefile(
     DISTNAME     => 'Persistence-Entity',
     PREREQ_PM    => { 
         'Abstract::Meta::Class'   => 0.10,
-        'SQL::Entity'             => 0.04,
+        'SQL::Entity'             => 0.05,
 	'DBIx::Connection'        => 0.06,
 	'Simple::SAX::Serializer' => 0.04,
         'Test::DBUnit'		  => 0.07,

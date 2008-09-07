@@ -60,7 +60,7 @@ SKIP: {
     ::reset_schema_ok("t/sql/". $connection->dbms_name . "/populate_schema.sql");
     
     
-    for (0 .. 100) {
+    for (1 .. 100) {
         $entity_manager->insert(
             Employee->new(
                 no     => $_,
@@ -74,8 +74,8 @@ SKIP: {
 	$query->set_offset(20);
 	$query->set_limit(5);
 	my @emp = $query->execute();
-	::is($emp[0]->name,'test19', "have the first query row");
-	::is($emp[-1]->name,'test23', "have the last query row");
+	::is($emp[0]->name,'test20', "have the first query row");
+	::is($emp[-1]->name,'test24', "have the last query row");
     }
     
     {
@@ -83,7 +83,7 @@ SKIP: {
 	$query->set_offset(20);
 	$query->set_limit(5);
 	my @emp = $query->execute();
-	::is($emp[0]->{ename},'test19', "have the first query row");
-	::is($emp[-1]->{ename},'test23', "have the last query row");
+	::is($emp[0]->{ename},'test20', "have the first query row");
+	::is($emp[-1]->{ename},'test24', "have the last query row");
     }
 }

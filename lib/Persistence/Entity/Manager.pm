@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use vars qw($VERSION);
 
-$VERSION = 0.02;
+$VERSION = 0.03;
 
 use Abstract::Meta::Class ':all';
 use Persistence::ORM;
@@ -12,6 +12,7 @@ use DBIx::Connection;
 use Carp 'confess';
 use Persistence::Entity ':all';
 
+use constant TRANSACTION_MANAGEMENT => 'transaction';
 
 =head1 NAME
 
@@ -162,7 +163,7 @@ If the persitence_mangement option is not set then extra sql will be issued to g
 
 =cut
 
-has '$.persitence_mangement' => (default => 'transaction');
+has '$.persitence_mangement' => (default => TRANSACTION_MANAGEMENT());
 
 
 =item _persistence_cache
@@ -552,7 +553,7 @@ sub commit {
     $self->connection->commit;
     my $persitence_mangement = $self->persitence_mangement;
     $self->detach_all
-        if ($persitence_mangement  && $persitence_mangement eq 'transation');
+        if ($persitence_mangement && $persitence_mangement eq TRANSACTION_MANAGEMENT());
 }
 
 
@@ -569,7 +570,7 @@ sub rollback {
     $self->connection->rollback;
     my $persitence_mangement = $self->persitence_mangement;
     $self->detach_all
-        if ($persitence_mangement  && $persitence_mangement eq 'transation');
+        if ($persitence_mangement  && $persitence_mangement eq TRANSACTION_MANAGEMENT());
 }
 
 

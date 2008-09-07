@@ -1,5 +1,9 @@
 Revision history for Perl extension Persistence::Entity.
 
+0.07  Sun Sep 07 2008 
+    - fix commit (detach_all wasn't called for transaction_management eq 'transation')
+    - fix tests for MYSQL/PostgreSQL (updated sql scripts)
+
 0.06  Mon Jun 09 2008
     - Extended xml schema for value_generators
     - Added ValueGenerator manual

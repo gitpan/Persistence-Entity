@@ -30,6 +30,8 @@ SKIP: {
       password => $ENV{DB_TEST_PASSWORD},
     );
     
+   skip("mysql doesn't support sequences", 34)
+	if (lc($connection->dbms_name) eq 'mysql');
     {
         my $allocation_size = 1;
         my $generator = $class->new(
@@ -40,7 +42,8 @@ SKIP: {
         );
         
         $entity_manager->begin_work;
-        $connection->reset_sequence("emp_seq", 1, 1);
+        $connection->reset_sequence(lc($connection->dbms_name) eq 'mysql' ? 'emp' : "emp_seq",  1, 1);
+
         isa_ok($generator, $class);
         for my $i (0 .. 7) {
             ::is(!! $generator->has_cached_seq, !! ($i  % $allocation_size), ("should access database (alloc size: $allocation_size): " . (! ($i  % $allocation_size) ? 'yes' : 'no')));

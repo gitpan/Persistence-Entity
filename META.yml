@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Persistence-Entity
-version:             0.06
+version:             0.07
 author:
   - 'Adrian Witas <adrian@webapp.strefa.pl>'
 abstract: Persistence API for perl classes.
@@ -15,7 +15,7 @@ requires:
     Carp:                          0
     DBIx::Connection:              0.06
     Simple::SAX::Serializer:       0.04
-    SQL::Entity:                   0.04
+    SQL::Entity:                   0.05
     Storable:                      0
     Test::DBUnit:                  0.07
     Test::Pod:                     0

@@ -23,7 +23,7 @@ use SQL::Entity ':all';
 
 %EXPORT_TAGS = (all => \@EXPORT_OK);
 
-$VERSION = 0.06;
+$VERSION = 0.07;
 
 =head1 NAME
 

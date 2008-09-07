@@ -13,7 +13,8 @@ CREATE TABLE address (
  id        INT4 DEFAULT nextval('address_seq') NOT NULL,
  loc       VARCHAR(20),
  town      VARCHAR(20),
- postcode  VARCHAR(20)
+ postcode  VARCHAR(20),
+ loc	   VARCHAR(20),
 ); 
 
 
